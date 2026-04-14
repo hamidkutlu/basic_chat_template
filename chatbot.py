@@ -3,16 +3,11 @@ from streamlit_chat import message
 # from langchain.chat_models import ChatOpenAI
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import ConversationChain
-from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from langchain_core.messages import HumanMessage, AIMessage
 
 import os
 
 # os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-
-# Initialize session state variables
-if 'buffer_memory' not in st.session_state:
-    st.session_state.buffer_memory = ConversationBufferWindowMemory(k=3, return_messages=True)
 
 if "messages" not in st.session_state.keys(): # Initialize the chat message history
     st.session_state.messages = [
@@ -31,7 +26,6 @@ llm = ChatGoogleGenerativeAI(
 #                       openai_api_base = "https://api.together.xyz/v1"
 # )
 
-conversation = ConversationChain(memory=st.session_state.buffer_memory, llm=llm)
 
 # Create user interface
 st.title("🗣️ Conversational Chatbot")
@@ -49,7 +43,14 @@ for message in st.session_state.messages: # Display the prior chat messages
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response = conversation.predict(input = prompt)
-            st.write(response)
-            message = {"role": "assistant", "content": response}
+            # Build message history (last 3 exchanges, same as k=3)
+            history = []
+            for msg in st.session_state.messages[-7:]:
+                if msg["role"] == "user":
+                    history.append(HumanMessage(content=msg["content"]))
+                elif msg["role"] == "assistant":
+                    history.append(AIMessage(content=msg["content"]))
+            response = llm.invoke(history)
+            st.write(response.content)
+            message = {"role": "assistant", "content": response.content}
             st.session_state.messages.append(message) # Add response to message history

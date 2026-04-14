@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(py -c \"from langchain.chains.conversation.base import ConversationChain; print\\(''Found!''\\)\")",
+      "Bash(py -c \"from langchain.chains.llm import LLMChain; print\\(''Found LLMChain''\\)\")",
+      "Bash(py -c \"import langchain; print\\(langchain.__version__\\)\")",
+      "Bash(py -m pip install \"langchain>=0.3.0\" --upgrade)"
+    ]
+  }
+}
